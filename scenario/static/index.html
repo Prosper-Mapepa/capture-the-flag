@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Chippewa Squirrel Rescue</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect fill='%23243356' width='16' height='16'/%3E%3Crect fill='%23ffd089' x='3' y='3' width='4' height='4'/%3E%3Crect fill='%23ffd089' x='9' y='3' width='4' height='4'/%3E%3Crect fill='%238b5a3c' x='6' y='9' width='4' height='7'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-side="none">
+  <header class="top">
+    <div class="brand">
+      <p class="kicker">Campus rescue game</p>
+      <h1>Chippewa Squirrel Rescue</h1>
+    </div>
+    <div class="header-actions">
+      <div class="lanes" role="group" aria-label="Jersey color">
+        <button type="button" id="lane-red" class="lane">Red</button>
+        <button type="button" id="lane-blue" class="lane">Blue</button>
+      </div>
+      <button type="button" id="mute">Sound on</button>
+      <a id="board-link" href="http://localhost:8000">Scoreboard</a>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="stage-wrap">
+      <ol class="beats" aria-label="Progress">
+        <li id="beat-door" class="on">At the door</li>
+        <li id="beat-in">Snack closet</li>
+        <li id="beat-end">Rescue</li>
+      </ol>
+      <div id="stage" class="stage scene-street">
+        <div class="world" id="world">
+          <div class="sky">
+            <div class="moon"></div>
+            <span class="star s1"></span>
+            <span class="star s2"></span>
+            <span class="star s3"></span>
+            <span class="star s4"></span>
+            <span class="star s5"></span>
+          </div>
+          <div class="lamp" aria-hidden="true"><span class="pole"></span><span class="bulb"></span></div>
+          <div class="building" id="building">
+            <div class="roof"></div>
+            <div class="sign">ACORN HALL</div>
+            <div class="windows" id="windows">
+              <span class="lit"></span><span></span><span class="lit"></span><span class="flicker"></span>
+              <span></span><span class="lit"></span><span></span><span class="lit"></span>
+              <span class="lit"></span><span class="flicker"></span><span></span><span class="lit"></span>
+              <span></span><span></span><span class="lit"></span><span></span>
+            </div>
+            <svg class="crack" viewBox="0 0 100 160" aria-hidden="true">
+              <path d="M62 8 L54 40 L70 48 L46 90 L64 98 L50 150"></path>
+            </svg>
+            <div class="entrance">
+              <div class="door-frame">
+                <div class="door-slab"><span class="handle"></span></div>
+              </div>
+              <div class="intercom">
+                <div class="intercom-screen" id="intercom-screen">READY</div>
+                <span class="led" id="door-led"></span>
+              </div>
+            </div>
+          </div>
+          <div class="sidewalk"></div>
+          <div class="road"></div>
+          <div class="person walker" id="walker">
+            <span class="hood"></span>
+            <span class="head"></span>
+            <span class="arm l"></span>
+            <span class="arm r"></span>
+            <span class="body"></span>
+            <span class="leg l"></span>
+            <span class="leg r"></span>
+            <span class="shadow"></span>
+          </div>
+          <div class="smoke" aria-hidden="true">
+            <i></i><i></i><i></i><i></i><i></i>
+          </div>
+          <div class="debris" id="debris" aria-hidden="true"></div>
+          <div class="flash" aria-hidden="true"></div>
+          <div class="siren" aria-hidden="true"></div>
+        </div>
+
+        <div class="closet" id="closet">
+          <div class="room-sign">SNACK CLOSET</div>
+          <div class="pair">
+            <div class="person room-actor" id="room-actor">
+              <span class="hood"></span>
+              <span class="head"></span>
+              <span class="arm l"></span>
+              <span class="arm r"></span>
+              <span class="body"></span>
+              <span class="leg l"></span>
+              <span class="leg r"></span>
+            </div>
+            <div class="rig">
+              <div class="prop" id="prop">
+                <div class="tape">SQUIRREL LOCK</div>
+                <div class="prop-screen" id="prop-screen">05:00</div>
+                <span class="led" id="prop-led"></span>
+                <p>Game keypad. Not a real lock.</p>
+              </div>
+              <div class="table"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endcard" id="endcard" hidden>
+          <p class="end-kicker" id="end-kicker">Rescue result</p>
+          <h2 id="end-title">Squirrels freed</h2>
+          <p id="end-copy"></p>
+        </div>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <p class="eyebrow" id="eyebrow">Outside</p>
+      <h2 id="panel-title">Acorn Hall door</h2>
+      <p id="panel-copy">A rescue runner is heading for Acorn Hall. The Chippewa squirrels are locked inside. The PIN is in the Squirrel Door Note challenge.</p>
+      <p class="clock" id="clock" hidden>05:00</p>
+      <p class="tries" id="tries" hidden></p>
+      <div class="slots" id="slots" aria-label="Code"></div>
+      <div class="keys" id="keys"></div>
+      <p class="feedback" id="feedback" role="status"></p>
+      <button type="button" class="action" id="enter-btn" hidden>Enter the closet</button>
+      <button type="button" class="action ghost" id="reset-btn" hidden>Try the rescue again</button>
+      <div id="flag-list" class="flag-list"></div>
+      <p class="fine">Digits only. Decode the challenges on the scoreboard, then type the code here. A wrong full closet code spends a try and startles the squirrels.</p>
+    </aside>
+  </main>
+  <footer>Cartoon rescue. The closet box is a game prop. Do not try this on a real building.</footer>
+  <script src="/static/app.js"></script>
+</body>
+</html>

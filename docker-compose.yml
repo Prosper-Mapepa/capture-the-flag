@@ -1,0 +1,92 @@
+# Club scoreboard (CTFd) plus the animated building exercise.
+# Players use port 8000 for the scoreboard and port 8080 for the simulator.
+
+name: building-sweep
+
+services:
+  permissions:
+    image: alpine:3.20
+    user: root
+    volumes:
+      - ctfd-logs:/var/log/CTFd
+      - ctfd-uploads:/var/uploads
+    command: chown -R 1001:1001 /var/uploads /var/log/CTFd
+
+  db:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ctfd
+      MARIADB_USER: ctfd
+      MARIADB_PASSWORD: ctfd
+      MARIADB_DATABASE: ctfd
+      MARIADB_AUTO_UPGRADE: "1"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    command:
+      - mysqld
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --wait_timeout=28800
+      - --log-warnings=0
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  cache:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "60", "1"]
+    volumes:
+      - redis-data:/data
+
+  ctfd:
+    image: ctfd/ctfd:3.7.7
+    restart: unless-stopped
+    depends_on:
+      permissions:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_started
+    environment:
+      SECRET_KEY: ${SECRET_KEY}
+      UPLOAD_FOLDER: /var/uploads
+      DATABASE_URL: mysql+pymysql://ctfd:ctfd@db/ctfd
+      REDIS_URL: redis://cache:6379
+      WORKERS: "2"
+      LOG_FOLDER: /var/log/CTFd
+      ACCESS_LOG: "-"
+      ERROR_LOG: "-"
+      SCENARIO_URL: "${SCENARIO_URL:-http://localhost:8080}"
+    volumes:
+      - ctfd-logs:/var/log/CTFd
+      - ctfd-uploads:/var/uploads
+      - ./ctfd/plugins/squirrel_join:/opt/CTFd/CTFd/plugins/squirrel_join:ro
+    ports:
+      - "8000:8000"
+
+  scenario:
+    build: ./scenario
+    restart: unless-stopped
+    environment:
+      TOKEN_SECRET: ${TOKEN_SECRET}
+      DOOR_CODE: ${DOOR_CODE:-246813}
+      DISARM_CODE: ${DISARM_CODE:-903177}
+      DOOR_FLAG: ${DOOR_FLAG:-flag{door_is_open}}
+      DISARM_FLAG: ${DISARM_FLAG:-flag{building_is_safe}}
+      SCOREBOARD_URL: ${SCOREBOARD_URL:-http://localhost:8000}
+      TRIES: ${TRIES:-3}
+      SECONDS: ${SECONDS:-300}
+    ports:
+      - "8080:8080"
+
+volumes:
+  ctfd-logs:
+  ctfd-uploads:
+  mysql-data:
+  redis-data:

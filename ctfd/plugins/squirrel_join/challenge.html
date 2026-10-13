@@ -1,0 +1,166 @@
+<div :class="getStyles()" role="document" x-data="Challenge" x-init="id = {{ challenge.id }}; max_attempts = {{ max_attempts }}; attempts = {{ attempts }}">
+  <div class="modal-content">
+    <div class="modal-body">
+      <div class="puzzle-head">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h2 class="challenge-name">{{ challenge.name }}</h2>
+        <p class="challenge-points">{{ challenge.value }} points</p>
+      </div>
+
+      <ul class="nav puzzle-tabs">
+        <li class="nav-item">
+          <button class="nav-link active" data-bs-target="#challenge" @click="showChallenge()">
+            Puzzle
+          </button>
+        </li>
+        {% block solves %}
+          <li class="nav-item">
+            <button class="nav-link challenge-solves" data-bs-target="#solves" @click="showSolves()">
+              Who solved it{% if solves != None %} ({{ solves }}){% endif %}
+            </button>
+          </li>
+        {% endblock %}
+      </ul>
+
+      <div class="tab-content">
+        <div role="tabpanel" class="tab-pane fade show active" id="challenge">
+          {% if tags %}
+            <div class="challenge-tags">
+              {% block tags %}
+                {% for tag in tags %}
+                  <span class="challenge-tag badge bg-info">{{ tag }}</span>
+                {% endfor %}
+              {% endblock %}
+            </div>
+          {% endif %}
+
+          <span class="challenge-desc">{% block description %}{{ challenge.html }}{% endblock %}</span>
+
+          <small class="challenge-attribution">
+            {% block attribution %}{{ challenge.byline }}{% endblock %}
+          </small>
+
+          {% if challenge.connection_info %}
+            <div>
+              <span class="challenge-connection-info">
+                {% block connection_info %}
+                  {% set conn = challenge.connection_info %}
+                  {% if conn %}
+                    <a class="building-link" href="{{ conn }}" target="_blank" rel="noopener">Open the building</a>
+                  {% endif %}
+                {% endblock %}
+              </span>
+            </div>
+          {% endif %}
+
+          {% if hints %}
+            <div class="challenge-hints">
+              {% for hint in hints | sort(attribute="cost") %}
+                <div x-data="Hint" x-init="id = {{ hint.id }}">
+                  {% if hint.content %}
+                  <details>
+                    <summary>Hint</summary>
+                    <div>{{ hint.html | safe }}</div>
+                  </details>
+                  {% else %}
+                  <details data-cost="{{ hint.cost }}" @toggle="showHint(event)">
+                    <summary>Need a hint? It costs {{ hint.cost }} points</summary>
+                    <div x-html="html"></div>
+                  </details>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% if files %}
+            <div class="challenge-files pb-3">
+              {% for file in files %}
+                {% set segments = file.split('/') %}
+                {% set token = file.split('?') | last %}
+                {% if token %}
+                  {% set filename = segments | last | replace("?" + token, "") %}
+                {% else %}
+                  {% set filename = segments | last %}
+                {% endif %}
+                <a class="btn btn-info btn-file mb-1" href="{{ file }}">{{ filename }}</a>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <template x-if="max_attempts > 0">
+            <p>
+              <span x-text="attempts"></span>/<span x-text="max_attempts"></span> tries
+            </p>
+          </template>
+
+          <div class="row submit-row">
+            <div class="col-12 col-sm-8">
+              {% block input %}
+                <input id="challenge-id" class="challenge-id" type="hidden" value="{{ challenge.id }}">
+                <input
+                    id="challenge-input" class="challenge-input form-control"
+                    type="text" name="submission"
+                    @keyup.enter="submitChallenge()"
+                    placeholder="Paste the flag" x-model="submission"
+                >
+              {% endblock %}
+            </div>
+            <div class="col-12 col-sm-4 mt-3 mt-sm-0 key-submit">
+              {% block submit %}
+                <button
+                    id="challenge-submit"
+                    class="challenge-submit btn btn-outline-secondary w-100 h-100" type="submit"
+                    @click.debounce.500ms="submitChallenge()"
+                >
+                  Submit
+                </button>
+              {% endblock %}
+            </div>
+          </div>
+
+          <div class="row notification-row">
+            <div class="col-12">
+              <template x-if="response">
+                <div class="alert text-center w-100 mt-3"
+                    :class="{
+                      'alert-success': response.data.status == 'correct',
+                      'alert-info': response.data.status == 'already_solved',
+                      'alert-danger': response.data.status == 'incorrect',
+                      'alert-warning': response.data.status == 'paused',
+                    }" role="alert"
+                >
+                  <strong x-text="response.data.message"></strong>
+                  <div x-show="(response.data.status == 'correct' || response.data.status == 'already_solved')">
+                    <div x-show="getNextId()">
+                      <button @click="nextChallenge()" class="btn btn-info mt-3">Next puzzle</button>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+
+        <div role="tabpanel" class="tab-pane fade" id="solves">
+          <table class="table table-striped align-middle">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>When</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="solve in solves">
+                <tr>
+                  <td><a :href="solve.account_url" x-text="solve.name"></a></td>
+                  <td x-text="solve.date"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
