@@ -173,6 +173,20 @@ body .jumbotron {
   content: " points";
 }
 
+.btn.challenge-button span.forward {
+  margin-top: auto;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--maroon-dark);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.btn.challenge-button span.forward::after {
+  content: none;
+}
+
 .btn.challenge-solved,
 .btn.solved-challenge {
   opacity: 1 !important;
@@ -265,6 +279,13 @@ body .jumbotron {
   color: var(--ink);
   font-size: 17px;
   line-height: 1.55;
+}
+
+.no-copy,
+.no-copy * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .challenge-desc p {
@@ -409,6 +430,138 @@ body .jumbotron {
 .hint-yes {
   background: var(--gold);
   color: var(--maroon-dark);
+}
+
+.step-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(28, 28, 28, 0.46);
+  animation: step-fade 0.22s ease;
+}
+
+.step-card {
+  width: min(440px, 100%);
+  padding: 26px 24px 22px;
+  border-radius: 24px;
+  background: var(--paper);
+  box-shadow: 0 22px 60px rgba(74, 0, 35, 0.28);
+  text-align: center;
+  animation: step-pop 0.42s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+.step-mark {
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: step-mark 0.5s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+.step-mark svg {
+  width: 76px;
+  height: 76px;
+}
+
+.step-mark circle {
+  fill: none;
+  stroke: var(--maroon);
+  stroke-width: 3;
+}
+
+.step-mark path {
+  fill: none;
+  stroke: var(--maroon-dark);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: step-draw 0.4s 0.2s ease forwards;
+}
+
+.step-title {
+  margin: 0 0 8px;
+  color: var(--ink);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.step-body {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+.step-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.step-stay,
+.step-go {
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 18px;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.step-stay {
+  background: #fff;
+  color: var(--maroon);
+  box-shadow: inset 0 0 0 2px var(--maroon);
+}
+
+.step-go {
+  background: var(--gold);
+  color: var(--maroon-dark);
+}
+
+@keyframes step-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes step-pop {
+  from { opacity: 0; transform: translateY(18px) scale(0.94); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes step-mark {
+  0% { transform: scale(0.4); }
+  70% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+@keyframes step-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+.flag-gate {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.flag-gate[hidden] { display: none; }
+
+#challenge-input:disabled,
+#challenge-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .form-control,

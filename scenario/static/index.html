@@ -31,6 +31,11 @@
         <li id="beat-in">Snack closet</li>
         <li id="beat-end">Rescue</li>
       </ol>
+      <div class="endcard" id="endcard" hidden>
+        <p class="end-kicker" id="end-kicker">Rescue result</p>
+        <h2 id="end-title">Squirrels freed</h2>
+        <p id="end-copy"></p>
+      </div>
       <div id="stage" class="stage scene-street">
         <div class="world" id="world">
           <div class="sky">
@@ -86,6 +91,38 @@
 
         <div class="closet" id="closet">
           <div class="room-sign">SNACK CLOSET</div>
+          <div class="pen locked" id="pen" aria-hidden="true">
+            <div class="squirrels">
+              <div class="squirrel">
+                <span class="tail"></span>
+                <span class="ear l"></span>
+                <span class="ear r"></span>
+                <span class="head"><i></i></span>
+                <span class="body"></span>
+                <span class="paw l"></span>
+                <span class="paw r"></span>
+              </div>
+              <div class="squirrel">
+                <span class="tail"></span>
+                <span class="ear l"></span>
+                <span class="ear r"></span>
+                <span class="head"><i></i></span>
+                <span class="body"></span>
+                <span class="paw l"></span>
+                <span class="paw r"></span>
+              </div>
+              <div class="squirrel">
+                <span class="tail"></span>
+                <span class="ear l"></span>
+                <span class="ear r"></span>
+                <span class="head"><i></i></span>
+                <span class="body"></span>
+                <span class="paw l"></span>
+                <span class="paw r"></span>
+              </div>
+            </div>
+            <div class="glass"></div>
+          </div>
           <div class="pair">
             <div class="person room-actor" id="room-actor">
               <span class="hood"></span>
@@ -107,16 +144,11 @@
             </div>
           </div>
         </div>
-
-        <div class="endcard" id="endcard" hidden>
-          <p class="end-kicker" id="end-kicker">Rescue result</p>
-          <h2 id="end-title">Squirrels freed</h2>
-          <p id="end-copy"></p>
-        </div>
       </div>
     </section>
 
     <aside class="panel">
+      <div id="flag-list" class="flag-list" hidden></div>
       <p class="eyebrow" id="eyebrow">Outside</p>
       <h2 id="panel-title">Acorn Hall door</h2>
       <p id="panel-copy">A rescue runner is heading for Acorn Hall. The Chippewa squirrels are locked inside. The PIN is in the Squirrel Door Note challenge.</p>
@@ -127,7 +159,6 @@
       <p class="feedback" id="feedback" role="status"></p>
       <button type="button" class="action" id="enter-btn" hidden>Enter the closet</button>
       <button type="button" class="action ghost" id="reset-btn" hidden>Try the rescue again</button>
-      <div id="flag-list" class="flag-list"></div>
       <p class="fine">Digits only. Decode the challenges on the scoreboard, then type the code here. A wrong full closet code spends a try and startles the squirrels.</p>
     </aside>
   </main>

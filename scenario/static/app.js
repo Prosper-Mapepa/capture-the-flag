@@ -3,6 +3,7 @@ const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const stage = document.getElementById("stage");
 const walker = document.getElementById("walker");
 const roomActor = document.getElementById("room-actor");
+const pen = document.getElementById("pen");
 const building = document.getElementById("building");
 const prop = document.getElementById("prop");
 const propScreen = document.getElementById("prop-screen");
@@ -30,24 +31,17 @@ let timerHandle = null;
 let busy = false;
 let audioCtx = null;
 let muted = false;
-let flags = loadFlags();
+let flags = [];
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, reduce ? 0 : ms));
 
-function loadFlags() {
-  try {
-    return JSON.parse(sessionStorage.getItem("sweep-flags") || "[]");
-  } catch (_err) {
-    return [];
-  }
-}
-
-function saveFlags() {
-  sessionStorage.setItem("sweep-flags", JSON.stringify(flags));
-}
-
 function setText(id, value) {
   document.getElementById(id).textContent = value;
+}
+
+function setPen(state) {
+  pen.classList.remove("locked", "free", "flinch");
+  pen.classList.add(state);
 }
 
 function setScene(next) {
@@ -109,18 +103,34 @@ function setFeedback(message, kind) {
   feedback.className = "feedback" + (kind ? " " + kind : "");
 }
 
+function notifyScoreboard(label) {
+  const step = label === "Door flag" ? "door" : "closet";
+  const message = { source: "squirrel-rescue", step };
+  if (window.opener && !window.opener.closed) {
+    window.opener.postMessage(message, "*");
+  }
+  const steps = [];
+  if (flags.some((row) => row.label === "Door flag")) steps.push("door");
+  if (flags.some((row) => row.label === "Rescue flag")) steps.push("closet");
+  const url = new URL(cfg.scoreboard, window.location.href);
+  if (steps.length) url.hash = "unlock=" + steps.join(",");
+  boardLink.href = url.toString();
+}
+
 function addFlag(label, value) {
   if (!value || flags.some((row) => row.value === value)) {
     renderFlags();
+    notifyScoreboard(label);
     return;
   }
   flags.push({ label, value });
-  saveFlags();
   renderFlags();
+  notifyScoreboard(label);
 }
 
 function renderFlags() {
   flagList.replaceChildren();
+  flagList.hidden = flags.length === 0;
   flags.forEach((row) => {
     const card = document.createElement("div");
     card.className = "flag-card";
@@ -132,6 +142,7 @@ function renderFlags() {
     button.type = "button";
     button.textContent = "Copy flag";
     button.addEventListener("click", async () => {
+      notifyScoreboard(row.label);
       try {
         await navigator.clipboard.writeText(row.value);
         button.textContent = "Copied";
@@ -228,6 +239,7 @@ async function walkInside() {
   walker.classList.remove("through");
   secondsLeft = cfg.seconds;
   setScene("closet");
+  setPen("locked");
   roomActor.classList.add("idle");
   triesEl.textContent = `Tries left: ${cfg.tries}`;
   clock.classList.remove("safe");
@@ -288,6 +300,9 @@ async function submitDisarm(code) {
   prop.classList.remove("jolt");
   void prop.offsetWidth;
   prop.classList.add("jolt");
+  pen.classList.remove("flinch");
+  void pen.offsetWidth;
+  pen.classList.add("flinch");
   triesEl.textContent = `Tries left: ${data.attempts_left}`;
   setFeedback(data.message, "bad");
   blip(110, 0.22, "sawtooth", 0.04);
@@ -308,6 +323,7 @@ function succeed(flag, message) {
   clock.classList.add("safe");
   roomActor.classList.remove("idle");
   roomActor.classList.add("cheer");
+  setPen("free");
   addFlag("Rescue flag", flag);
   setFeedback(message, "good");
   showEnd("Squirrels freed", "The snack closet popped open and the Chippewa squirrels hopped out.", "good");
@@ -346,6 +362,7 @@ async function restart() {
   propLed.className = "led";
   roomActor.classList.remove("cheer");
   roomActor.classList.add("idle");
+  setPen("locked");
   document.getElementById("debris").replaceChildren();
   clearTyped();
   if (!lastDoor) {

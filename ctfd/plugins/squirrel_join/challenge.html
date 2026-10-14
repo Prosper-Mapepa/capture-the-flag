@@ -34,7 +34,7 @@
             </div>
           {% endif %}
 
-          <span class="challenge-desc">{% block description %}{{ challenge.html }}{% endblock %}</span>
+          <span class="challenge-desc no-copy">{% block description %}{{ challenge.html }}{% endblock %}</span>
 
           <small class="challenge-attribution">
             {% block attribution %}{{ challenge.byline }}{% endblock %}
@@ -46,7 +46,7 @@
                 {% block connection_info %}
                   {% set conn = challenge.connection_info %}
                   {% if conn %}
-                    <a class="building-link" href="{{ conn }}" target="_blank" rel="noopener">Open the building</a>
+                    <a class="building-link" href="{{ conn }}" target="_blank" rel="opener">Open the building</a>
                   {% endif %}
                 {% endblock %}
               </span>
@@ -94,6 +94,7 @@
             </p>
           </template>
 
+          <p class="flag-gate" id="flag-gate">This box stays closed until the building accepts the door PIN.</p>
           <div class="row submit-row">
             <div class="col-12 col-sm-8">
               {% block input %}
@@ -102,7 +103,7 @@
                     id="challenge-input" class="challenge-input form-control"
                     type="text" name="submission"
                     @keyup.enter="submitChallenge()"
-                    placeholder="Paste the flag" x-model="submission"
+                    placeholder="Flag box is closed" x-model="submission" disabled
                 >
               {% endblock %}
             </div>
@@ -112,6 +113,7 @@
                     id="challenge-submit"
                     class="challenge-submit btn btn-outline-secondary w-100 h-100" type="submit"
                     @click.debounce.500ms="submitChallenge()"
+                    disabled
                 >
                   Submit
                 </button>
@@ -121,19 +123,30 @@
 
           <div class="row notification-row">
             <div class="col-12">
-              <template x-if="response">
+              <template x-if="response && response.data.status != 'correct' && response.data.status != 'already_solved'">
                 <div class="alert text-center w-100 mt-3"
                     :class="{
-                      'alert-success': response.data.status == 'correct',
-                      'alert-info': response.data.status == 'already_solved',
                       'alert-danger': response.data.status == 'incorrect',
                       'alert-warning': response.data.status == 'paused',
                     }" role="alert"
                 >
                   <strong x-text="response.data.message"></strong>
-                  <div x-show="(response.data.status == 'correct' || response.data.status == 'already_solved')">
-                    <div x-show="getNextId()">
-                      <button @click="nextChallenge()" class="btn btn-info mt-3">Next puzzle</button>
+                </div>
+              </template>
+              <template x-if="response && (response.data.status == 'correct' || response.data.status == 'already_solved')">
+                <div class="step-modal" role="dialog" aria-modal="true" aria-labelledby="step-title">
+                  <div class="step-card">
+                    <div class="step-mark" aria-hidden="true">
+                      <svg viewBox="0 0 52 52">
+                        <circle cx="26" cy="26" r="24"></circle>
+                        <path d="M14 27 l8 8 l16-16"></path>
+                      </svg>
+                    </div>
+                    <h2 id="step-title" class="step-title">Flag accepted</h2>
+                    <p class="step-body">Next, continue the rescue.</p>
+                    <div class="step-actions">
+                      <button type="button" class="step-stay">Stay here</button>
+                      <a class="step-go" href="#">Next step</a>
                     </div>
                   </div>
                 </div>

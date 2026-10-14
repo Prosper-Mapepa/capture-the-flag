@@ -54,4 +54,140 @@
   setTimeout(function () {
     clearInterval(timer);
   }, 10000);
+
+  function inQuestion(event) {
+    const desc = document.querySelector("#challenge-window .challenge-desc");
+    if (!desc) return false;
+    const path = event.composedPath ? event.composedPath() : [];
+    return path.indexOf(desc) !== -1;
+  }
+
+  ["copy", "cut", "dragstart", "contextmenu"].forEach(function (name) {
+    document.addEventListener(
+      name,
+      function (event) {
+        if (inQuestion(event)) event.preventDefault();
+      },
+      true
+    );
+  });
+
+  function openChallenge(name) {
+    const buttons = document.querySelectorAll(".challenge-button");
+    for (let i = 0; i < buttons.length; i += 1) {
+      const label = buttons[i].querySelector("p");
+      if (label && label.textContent.trim() === name) {
+        buttons[i].click();
+        return;
+      }
+    }
+  }
+
+  function fillStep(modal) {
+    if (!modal || modal.dataset.ready === "1" || modal.classList.contains("step-live")) return;
+    modal.dataset.ready = "1";
+    const nameNode = document.querySelector("#challenge-window .challenge-name");
+    const building = document.querySelector("#challenge-window .building-link");
+    const dialog = modal.cloneNode(true);
+    const title = dialog.querySelector(".step-title");
+    const body = dialog.querySelector(".step-body");
+    const go = dialog.querySelector(".step-go");
+    const stay = dialog.querySelector(".step-stay");
+    if (!title || !body || !go || !stay) return;
+    dialog.dataset.ready = "1";
+    dialog.classList.add("step-live");
+    modal.hidden = true;
+    const challenge = nameNode ? nameNode.textContent.trim() : "";
+    if (challenge === "Squirrel Door Note") {
+      title.textContent = "Door flag accepted";
+      body.textContent = "Next, open Snack Closet Log. Decode the log before you walk inside.";
+      go.textContent = "Go to the closet puzzle";
+      go.addEventListener("click", function (event) {
+        event.preventDefault();
+        dialog.remove();
+        openChallenge("Snack Closet Log");
+      });
+    } else {
+      title.textContent = "Closet flag accepted";
+      body.textContent = "Next, open the building and type the code on the keypad so the squirrels hop free.";
+      go.textContent = "Go to the building";
+      if (building) {
+        go.href = building.href;
+        go.target = "_blank";
+        go.rel = "opener";
+      }
+    }
+    stay.addEventListener("click", function () {
+      dialog.remove();
+    });
+    const previous = document.querySelector("body > .step-modal.step-live");
+    if (previous) previous.remove();
+    document.body.appendChild(dialog);
+    go.focus();
+  }
+
+  function rememberUnlock(raw) {
+    String(raw || "")
+      .split(",")
+      .forEach(function (step) {
+        if (step === "door" || step === "closet") {
+          sessionStorage.setItem("squirrel-unlock-" + step, "1");
+        }
+      });
+  }
+
+  const hashUnlock = new URLSearchParams(location.hash.replace(/^#/, "")).get("unlock");
+  if (hashUnlock) rememberUnlock(hashUnlock);
+
+  window.addEventListener("message", function (event) {
+    const data = event.data;
+    if (!data || data.source !== "squirrel-rescue") return;
+    rememberUnlock(data.step);
+    applyFlagGate();
+  });
+
+  function applyFlagGate() {
+    const nameNode = document.querySelector("#challenge-window .challenge-name");
+    const input = document.querySelector("#challenge-input");
+    const submit = document.querySelector("#challenge-submit");
+    const gate = document.querySelector("#flag-gate");
+    if (!nameNode || !input || !submit || !gate) return;
+    const name = nameNode.textContent.trim();
+    const step = name === "Snack Closet Log" ? "closet" : name === "Squirrel Door Note" ? "door" : "";
+    if (!step) return;
+    const open = sessionStorage.getItem("squirrel-unlock-" + step) === "1";
+    const locked = !open;
+    const placeholder = open ? "Paste the flag" : "Flag box is closed";
+    const message = step === "closet"
+      ? "This box stays closed until the snack keypad accepts the code."
+      : "This box stays closed until the building accepts the door PIN.";
+    if (input.disabled !== locked) input.disabled = locked;
+    if (submit.disabled !== locked) submit.disabled = locked;
+    if (input.placeholder !== placeholder) input.placeholder = placeholder;
+    if (gate.hidden !== open) gate.hidden = open;
+    if (gate.textContent !== message) gate.textContent = message;
+  }
+
+  function watchChallenge() {
+    const root = document.getElementById("challenge-window");
+    if (!root || root.dataset.watched === "1") return;
+    root.dataset.watched = "1";
+    let painting = false;
+    const watcher = new MutationObserver(function () {
+      if (painting) return;
+      painting = true;
+      watcher.disconnect();
+      try {
+        const modals = root.querySelectorAll(".step-modal");
+        for (let i = 0; i < modals.length; i += 1) fillStep(modals[i]);
+        applyFlagGate();
+      } finally {
+        painting = false;
+        watcher.observe(root, { childList: true, subtree: true });
+      }
+    });
+    watcher.observe(root, { childList: true, subtree: true });
+  }
+
+  watchChallenge();
 })();
