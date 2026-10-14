@@ -720,8 +720,6 @@ h2 { font-size: 26px; }
   text-align: center;
 }
 
-.prop p { margin: 8px 0 0; color: #d9cbb8; font-size: 13px; }
-
 .tape {
   display: inline-block;
   margin-bottom: 8px;
@@ -814,6 +812,84 @@ h2 { font-size: 26px; }
 @keyframes siren {
   from { opacity: 0.25; }
   to { opacity: 0.85; }
+}
+
+.finale {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.finale[hidden] { display: none; }
+
+.finale.alarm {
+  background: rgba(176, 12, 24, 0.28);
+  box-shadow: inset 0 0 140px rgba(90, 0, 0, 0.55);
+  animation: alarm-tint 0.38s ease-in-out infinite alternate;
+}
+
+@keyframes alarm-tint {
+  from { background: rgba(110, 0, 8, 0.22); }
+  to { background: rgba(220, 18, 28, 0.55); }
+}
+
+.confetti,
+.herd { position: absolute; inset: 0; }
+
+.confetti i {
+  position: absolute;
+  top: -20px;
+  width: 10px;
+  height: 16px;
+  border-radius: 2px;
+  animation: confetti-fall linear infinite;
+}
+
+.confetti i:nth-child(3n) { width: 8px; height: 8px; border-radius: 50%; }
+.confetti i:nth-child(4n) { width: 6px; height: 18px; }
+
+@keyframes confetti-fall {
+  from { transform: translateY(-10vh) rotate(var(--spin)); }
+  to { transform: translateY(110vh) rotate(calc(var(--spin) + 540deg)); }
+}
+
+.runner {
+  position: absolute;
+  left: -90px;
+  animation: squirrel-run linear infinite;
+}
+
+.runner.flip { animation-name: squirrel-run-back; }
+.runner.small .squirrel { zoom: 0.72; }
+
+.runner .squirrel { animation: hop 0.42s ease-in-out infinite; }
+.runner .tail { animation: tail-happy 0.28s ease-in-out infinite; }
+
+@keyframes squirrel-run {
+  from { transform: translateX(-12vw); }
+  to { transform: translateX(112vw); }
+}
+
+@keyframes squirrel-run-back {
+  from { transform: translateX(112vw) scaleX(-1); }
+  to { transform: translateX(-12vw) scaleX(-1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .finale.alarm { animation: none; background: rgba(176, 12, 24, 0.46); }
+  .confetti i {
+    animation: none;
+    top: var(--rest);
+    transform: rotate(var(--spin));
+  }
+  .runner {
+    animation: none;
+    left: var(--spot);
+  }
+  .runner .squirrel,
+  .runner .tail { animation: none; }
 }
 
 .endcard {

@@ -63,7 +63,7 @@ function setScene(next) {
     held: ["Door open", "Lobby", "Copy the door flag. Decode the Snack Closet Log before you walk in. The snack timer starts when you enter the closet."],
     closet: ["Snack closet", "Squirrel keypad", "Type the digits from the groundskeeper log. A full wrong code spends a try. Three wrong codes, or the timer, sends the squirrels scattering."],
     boom: ["Rescue failed", "Squirrels scattered", "The acorn alarm went off. Your door flag still counts. Restart and use the code from the log."],
-    safe: ["Rescue complete", "Squirrels freed", "The closet popped open. Copy both flags to the scoreboard."],
+    safe: ["Rescue complete", "Squirrels freed", "The closet popped open. Copy this flag to the scoreboard."],
   };
   const [eye, title, body] = copy[next];
   setText("eyebrow", eye);
@@ -76,6 +76,10 @@ function setScene(next) {
   clock.hidden = next !== "closet" && next !== "safe";
   triesEl.hidden = next !== "closet";
   renderSlots();
+  renderFlags();
+  if (next === "safe") showCelebration();
+  else if (next === "boom") showAlarm();
+  else clearFinale();
 }
 
 function renderSlots() {
@@ -129,9 +133,11 @@ function addFlag(label, value) {
 }
 
 function renderFlags() {
+  const inside = scene === "closet" || scene === "safe" || scene === "boom";
+  const shown = flags.filter((row) => (inside ? row.label !== "Door flag" : row.label === "Door flag"));
   flagList.replaceChildren();
-  flagList.hidden = flags.length === 0;
-  flags.forEach((row) => {
+  flagList.hidden = shown.length === 0;
+  shown.forEach((row) => {
     const card = document.createElement("div");
     card.className = "flag-card";
     const name = document.createElement("p");
@@ -238,6 +244,7 @@ async function walkInside() {
   await wait(1450);
   walker.classList.remove("through");
   secondsLeft = cfg.seconds;
+  setFeedback("");
   setScene("closet");
   setPen("locked");
   roomActor.classList.add("idle");
@@ -374,6 +381,61 @@ async function restart() {
   setFeedback("Using the PIN that already opened Acorn Hall…");
   const ok = await submitDoor(lastDoor, true);
   if (!ok) setScene("door");
+}
+
+function clearFinale() {
+  const finale = document.getElementById("finale");
+  finale.hidden = true;
+  finale.className = "finale";
+  finale.replaceChildren();
+}
+
+function makeSquirrel() {
+  const squirrel = document.createElement("div");
+  squirrel.className = "squirrel";
+  squirrel.innerHTML =
+    '<span class="tail"></span><span class="ear l"></span><span class="ear r"></span><span class="head"><i></i></span><span class="body"></span><span class="paw l"></span><span class="paw r"></span>';
+  return squirrel;
+}
+
+function showCelebration() {
+  const finale = document.getElementById("finale");
+  finale.hidden = false;
+  finale.className = "finale celebrate";
+  finale.replaceChildren();
+  const colors = ["#ffc82e", "#6a0032", "#1f8a4c", "#fffdf8", "#e04b4b", "#3d7de0"];
+  const confetti = document.createElement("div");
+  confetti.className = "confetti";
+  for (let i = 0; i < 90; i += 1) {
+    const bit = document.createElement("i");
+    bit.style.left = `${Math.random() * 100}%`;
+    bit.style.background = colors[i % colors.length];
+    bit.style.animationDelay = `${Math.random() * -3}s`;
+    bit.style.animationDuration = `${2.4 + Math.random() * 2.2}s`;
+    bit.style.setProperty("--rest", `${6 + Math.random() * 88}%`);
+    bit.style.setProperty("--spin", `${Math.random() * 360}deg`);
+    confetti.appendChild(bit);
+  }
+  const herd = document.createElement("div");
+  herd.className = "herd";
+  for (let i = 0; i < 7; i += 1) {
+    const runner = document.createElement("div");
+    runner.className = "runner" + (i % 2 ? " flip" : "") + (i % 3 === 0 ? " small" : "");
+    runner.style.top = `${6 + (i * 12) % 78}%`;
+    runner.style.animationDuration = `${5 + (i % 4)}s`;
+    runner.style.animationDelay = `${-i * 0.7}s`;
+    runner.style.setProperty("--spot", `${8 + i * 12}%`);
+    runner.appendChild(makeSquirrel());
+    herd.appendChild(runner);
+  }
+  finale.append(confetti, herd);
+}
+
+function showAlarm() {
+  const finale = document.getElementById("finale");
+  finale.hidden = false;
+  finale.className = "finale alarm";
+  finale.replaceChildren();
 }
 
 function spawnDebris() {

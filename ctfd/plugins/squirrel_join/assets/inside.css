@@ -42,6 +42,11 @@ body {
   color: #fff !important;
 }
 
+body.guest .navbar-nav.me-auto,
+body.guest #base-navbars > hr {
+  display: none !important;
+}
+
 .navbar-nav .nav-item:has(> a[href="/users"]),
 .navbar-nav .nav-item:has(> a[href="/teams"]),
 .navbar-nav .nav-item:has(> a[href="/notifications"]),

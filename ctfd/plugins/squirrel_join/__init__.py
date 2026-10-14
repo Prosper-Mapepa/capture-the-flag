@@ -26,7 +26,7 @@ SCENARIO_URL = os.environ.get("SCENARIO_URL", "http://localhost:8080").rstrip("/
 
 def load(app):
     register_plugin_assets_directory(app, base_path="/plugins/squirrel_join/assets/")
-    register_plugin_stylesheet("/plugins/squirrel_join/assets/inside.css?v=7")
+    register_plugin_stylesheet("/plugins/squirrel_join/assets/inside.css?v=9")
     register_plugin_script("/plugins/squirrel_join/assets/hint.js?v=8")
     register_user_page_menu_bar("The building", SCENARIO_URL)
     plugin_dir = os.path.dirname(__file__)

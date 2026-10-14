@@ -38,7 +38,7 @@
 
   {{ Configs.theme_header }}
 </head>
-<body>
+<body{% if not authed() %} class="guest"{% endif %}>
 {% include "components/navbar.html" %}
 
 <main role="main">
