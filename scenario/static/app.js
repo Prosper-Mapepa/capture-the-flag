@@ -534,11 +534,24 @@ document.addEventListener("keydown", (event) => {
   else if (event.key === "Enter") submitCurrent();
 });
 
-function chooseLane(side) {
+function chooseLane(side, locked) {
+  if (side !== "red" && side !== "blue") return;
   document.body.dataset.side = side;
+  document.body.classList.toggle("lane-locked", Boolean(locked));
   document.getElementById("lane-red").classList.toggle("on", side === "red");
   document.getElementById("lane-blue").classList.toggle("on", side === "blue");
   sessionStorage.setItem("sweep-lane", side);
+  if (locked) sessionStorage.setItem("sweep-lane-locked", side);
+}
+
+function laneFromJoin() {
+  const asked = new URLSearchParams(location.search).get("side");
+  if (asked === "red" || asked === "blue") return { side: asked, locked: true };
+  const saved = sessionStorage.getItem("sweep-lane");
+  const lockedSide = sessionStorage.getItem("sweep-lane-locked");
+  if ((saved === "red" || saved === "blue") && lockedSide === saved) return { side: saved, locked: true };
+  if (saved === "red" || saved === "blue") return { side: saved, locked: false };
+  return null;
 }
 
 async function boot() {
@@ -550,8 +563,8 @@ async function boot() {
   boardLink.href = cfg.scoreboard;
   buildKeys();
   renderFlags();
-  const savedLane = sessionStorage.getItem("sweep-lane");
-  if (savedLane === "red" || savedLane === "blue") chooseLane(savedLane);
+  const joined = laneFromJoin();
+  if (joined) chooseLane(joined.side, joined.locked);
   setScene("approach");
   propScreen.textContent = formatClock(cfg.seconds);
   walker.classList.add("walk");

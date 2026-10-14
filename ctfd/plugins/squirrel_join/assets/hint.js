@@ -181,6 +181,7 @@
         const modals = root.querySelectorAll(".step-modal");
         for (let i = 0; i < modals.length; i += 1) fillStep(modals[i]);
         applyFlagGate();
+        stampTeamLinks();
       } finally {
         painting = false;
         watcher.observe(root, { childList: true, subtree: true });
@@ -189,5 +190,34 @@
     watcher.observe(root, { childList: true, subtree: true });
   }
 
+  function stampTeamLinks() {
+    const team = window.init && window.init.teamName;
+    const side = team === "Red" ? "red" : team === "Blue" ? "blue" : "";
+    if (!side) return;
+    let buildingUrl = null;
+    document.querySelectorAll("a[href]").forEach(function (link) {
+      if (link.textContent.trim() !== "The building") return;
+      try {
+        buildingUrl = new URL(link.href);
+      } catch (error) {
+        buildingUrl = null;
+      }
+    });
+    document.querySelectorAll("a[href]").forEach(function (link) {
+      let url;
+      try {
+        url = new URL(link.href, location.href);
+      } catch (error) {
+        return;
+      }
+      const sameBuilding = buildingUrl && url.origin === buildingUrl.origin && url.pathname.replace(/\/$/, "") === buildingUrl.pathname.replace(/\/$/, "");
+      if (!sameBuilding && !link.classList.contains("building-link")) return;
+      if (url.searchParams.get("side") === side) return;
+      url.searchParams.set("side", side);
+      link.href = url.toString();
+    });
+  }
+
+  stampTeamLinks();
   watchChallenge();
 })();

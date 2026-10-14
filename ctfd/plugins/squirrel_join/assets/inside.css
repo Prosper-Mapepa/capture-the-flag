@@ -47,6 +47,10 @@ body.guest #base-navbars > hr {
   display: none !important;
 }
 
+a[href="/reset_password"] {
+  display: none !important;
+}
+
 .navbar-nav .nav-item:has(> a[href="/users"]),
 .navbar-nav .nav-item:has(> a[href="/teams"]),
 .navbar-nav .nav-item:has(> a[href="/notifications"]),

@@ -334,7 +334,7 @@
           <li>Name: <strong id="summary-name">{{ player_name or name }}</strong></li>
           <li>Team: <strong id="summary-team">{{ team or "Not picked yet" }}</strong></li>
           <li>First, open <strong>Squirrel Door Note</strong> and find the PIN.</li>
-          <li>Then open <a href="{{ scenario_url }}" target="_blank" rel="noopener">the building</a> and type that PIN.</li>
+          <li>Then open <a id="building-link" data-base="{{ scenario_url }}" href="{{ scenario_url }}" target="_blank" rel="noopener">the building</a> and type that PIN.</li>
         </ul>
         <div class="actions">
           <button class="back" type="button" data-back>Back</button>
@@ -351,9 +351,19 @@
     const peek = document.getElementById("peek");
     const password = document.getElementById("password");
 
+    const buildingLink = document.getElementById("building-link");
+
     function selected() {
       const picked = form.querySelector('input[name="team"]:checked');
       return picked ? picked.value : "";
+    }
+
+    function refreshBuildingLink() {
+      if (!buildingLink) return;
+      const url = new URL(buildingLink.dataset.base, window.location.href);
+      const side = selected().toLowerCase();
+      if (side === "red" || side === "blue") url.searchParams.set("side", side);
+      buildingLink.href = url.toString();
     }
 
     function setError(message) {
@@ -379,6 +389,7 @@
         item.classList.toggle("now", index === current);
         item.classList.toggle("done", index > -1 && index < current);
       });
+      refreshBuildingLink();
       if (step === "start") {
         const nameField = form.querySelector('input[name="name"]');
         const name = signedIn ? document.body.dataset.player : (nameField ? nameField.value.trim() : "");
